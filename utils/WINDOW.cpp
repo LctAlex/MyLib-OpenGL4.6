@@ -109,10 +109,7 @@ Window::Window(int width, int height, const char* title)
         exit(EXIT_FAILURE);
     }
 
-    Window::SetSwapInterval(1); //this way, unless specifically told otherwise, we avoid drawing too much by default. Disabled by SetTargetFPS
-    Window::SetClearColor(); //setting glClearColor to BLACK by default
-
-    //glEnable(GL_DEPTH_TEST); //should make a separate thing for this
+    Window::SetSwapInterval(1);
 
     frames.delta = 0.f;
     frames.current = glfwGetTime();
@@ -157,11 +154,6 @@ void Window::SetSwapInterval(bool interval) //1 or 0. 1 by default.
 void Window::SetAspectRatio(int numer, int denom)
 {
     glfwSetWindowAspectRatio(window, numer, denom);
-}
-
-void Window::SetClearColor(float r, float g, float b, float a)
-{
-    glClearColor(r, g, b, a);
 }
 
 void Window::EnableCullFace(GLenum mode)
@@ -237,9 +229,16 @@ void Window::ShowFPS()
 }
 
 //Managers
-void Window::StartUpdate()
+void Window::ClearBackground(float r, float g, float b, float a)
 {
-    glClear(GL_COLOR_BUFFER_BIT); // | GL_DEPTH_BUFFER_BIT);
+    glClearColor(r, g, b, a);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+    void Window::StartUpdate()
+{
+    //glClear(GL_COLOR_BUFFER_BIT); // | GL_DEPTH_BUFFER_BIT);
+    //HERE WE'LL BIND THE FRAMEBUFFER DRAWING, i guess?
 }
 
 void Window::EndUpdate()

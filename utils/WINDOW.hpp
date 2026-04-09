@@ -7,14 +7,14 @@
 #include <chrono>
 #include <vector>
 
-#define UNRESIZABLE_WINDOW GLFW_RESIZABLE, GLFW_FALSE
+#define UNRESIZABLE_WINDOW  GLFW_RESIZABLE, GLFW_FALSE //it's so cool that you can do this
 #define WINDOWED_FULLSCREEN GLFW_MAXIMIZED, GLFW_TRUE //could find a better name
 void SetWindowHint(int hint, int value);//to be called before constructing window! NEEDS glfwInit() before any hint...fuck
 struct WindowHint
 {
     int hint;
     int value;
-    WindowHint(int h, int v):hint(h),value(v){}
+    WindowHint(int h, int v):hint(h),value(v){} //constructor
 };
 
 class Window //designed for ONE single window
@@ -56,7 +56,6 @@ class Window //designed for ONE single window
     //Setters
     void SetSwapInterval(bool interval);
     void SetAspectRatio(int numer, int denom); //essentially does nothing in FULLSCREEN
-    void SetClearColor(float r = 0.f, float g = 0.f, float b = 0.f, float a = 1.f);
     void EnableCullFace(GLenum mode);
     void EnableCursor();
     void DisableCursor();
@@ -70,6 +69,7 @@ class Window //designed for ONE single window
     void ShowFPS();
 
     //Managers
+    void ClearBackground(float r = 0.5f, float g = 0.5f, float b = 0.5f, float a = 1.0f);
     void StartUpdate(); //should make 2D for color only & 3D for color AND depth
     void EndUpdate();
     void Close();
