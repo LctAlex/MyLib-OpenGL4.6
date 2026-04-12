@@ -86,16 +86,24 @@ Shader::Shader(const char* vertexFileName, const char* fragmentFileName)
         exit(EXIT_FAILURE);
     }
 
-    ID = glCreateProgram();
-    glAttachShader(ID, vShader);
-    glAttachShader(ID, fShader);
-    glLinkProgram(ID);
-    glGetProgramiv(ID, GL_LINK_STATUS, &success);
-    if(!success)
+    try
     {
+        ID = glCreateProgram();
+        glAttachShader(ID, vShader);
+        glAttachShader(ID, fShader);
+        glLinkProgram(ID);
+        glGetProgramiv(ID, GL_LINK_STATUS, &success);
+        if (!success)
+        {
             glGetProgramInfoLog(ID, 256, NULL, infoLog);
             std::cout << infoLog;
             throw std::runtime_error("ERROR::SHADER::LINKING_ERROR");
+        }
+    }
+    catch (const std::exception &e)
+    {
+        std::cout << e.what() << '\n';
+        exit(EXIT_FAILURE);
     }
 
     glDeleteShader(vShader);
