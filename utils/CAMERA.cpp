@@ -46,8 +46,9 @@ Camera::Camera(GLFWwindow* window, glm::vec3 pos, glm::vec3 target, glm::vec3 up
 
     //projection = glm::perspective(glm::radians(45.f), (float)window.GetWidth()/(float)window.GetHeight(), 0.1f, 100.f); //yeah we need a fucking Window member
 
-    glfwSetWindowUserPointer(window, this); //crucial
+    glfwSetWindowUserPointer(window, this); //crucial! why? we change *Camera members* inside the callback.
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //Camera::SetCursorPosCallback(window, true);
     glfwSetCursorPosCallback(window, Camera::mouse_callback);
 }
 
@@ -67,7 +68,17 @@ void Camera::SetSensitivity(float newSensitivity)
     sensitivity = newSensitivity;
 }
 
-void Camera::ChangeControls(int GLFW_KEY_forward, int GLFW_KEY_backward, int GLFW_KEY_left, int GLFW_KEY_right)
+void Camera::SetCursorPosCallback(GLFWwindow* window, bool active)
+{
+    if(active) glfwSetCursorPosCallback(window, Camera::mouse_callback);
+    else 
+    {
+        firstMouse = true; //cool thing! thus we can change this variable and use it IN SetCursorPosCallback(). SO COOL!!!
+        glfwSetCursorPosCallback(window, NULL);
+    }
+}
+
+    void Camera::ChangeControls(int GLFW_KEY_forward, int GLFW_KEY_backward, int GLFW_KEY_left, int GLFW_KEY_right)
 {
     inputKeys.FORWARD = GLFW_KEY_forward;
     inputKeys.BACKWARD = GLFW_KEY_backward;

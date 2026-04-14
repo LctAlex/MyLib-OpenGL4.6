@@ -10,11 +10,7 @@
 #include "../utils/CAMERA.hpp"
 #include "../utils/VAO.hpp"
 
-struct WindowUserPointer //this would kinda force Camera and Window classes to depend on each other
-{
-    Window* window;
-    Camera* camera;
-};
+//Window and Camera are forced to have something in common!
 //Thus a System (or some name) class would combine everything...A System class would: process inputs, create window, handle camera
 
 int main()
@@ -22,11 +18,13 @@ int main()
     //SetWindowHint(UNRESIZABLE_WINDOW);
     Window window(800, 800, "Framebuffer");
 
-    //Camera camera(window.GetPointer(), glm::vec3(0.f, 0.f, 3.f));
+    Camera camera(window.GetPointer(), glm::vec3(0.f, 0.f, 3.f));
     window.EnableCursor();
 
     // WindowUserPointer data;
     // glfwSetWindowUserPointer(window.GetPointer(), &data);
+
+    camera.SetCursorPosCallback(window.GetPointer(), false);
 
     const float vertices[] =
     {
@@ -51,21 +49,41 @@ int main()
     
     while (!window.ShouldClose())
     {
-        if(window.IsKeyPressed(GLFW_KEY_SPACE)) window.SetResolution(window.GetResX()/2, window.GetResY()/2);
+        if (window.IsKeyPressed(GLFW_KEY_SPACE)) window.SetResolution(window.GetResX() / 2, window.GetResY() / 2);
         if(window.IsKeyPressed(GLFW_KEY_R)) window.SetResolution(window.GetWidth(), window.GetHeight());
         if(window.IsKeyPressed(GLFW_KEY_ENTER)) window.SetResolution(window.GetWidth()+1, window.GetHeight()+1);
         if(window.IsKeyPressed(GLFW_KEY_I)) std::cout << "Window resolution: " 
                                                     << window.GetWidth() << ':' << window.GetHeight() << '\n';
-        if(window.IsKeyPressed(GLFW_KEY_H)) window.SetBlendingMode(GL_NEAREST);
-        if(window.IsKeyPressed(GLFW_KEY_M)) window.SetBlendingMode(GL_LINEAR);
+        if(window.IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) window.SetBlendingMode(GL_NEAREST);
+        if(window.IsMouseButtonReleased(GLFW_MOUSE_BUTTON_MIDDLE)) window.SetBlendingMode(GL_LINEAR);
+
+        static bool callback_status = false;
+        if(window.IsMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT))
+        {
+            if(!callback_status) 
+            {
+
+                camera.SetCursorPosCallback(window.GetPointer(), true);
+                window.DisableCursor();
+                callback_status = true;
+            }
+        }
+
+        if (window.IsMouseButtonReleased(GLFW_MOUSE_BUTTON_LEFT))
+        {
+            camera.SetCursorPosCallback(window.GetPointer(), false);
+            window.EnableCursor();
+            callback_status = false;
+        }
+
         window.StartUpdate();
         window.ClearColorDepth(0.3f, 0.3f, 0.3f);
-        //camera.Update(&window);
+        camera.Update(&window);
         
         model = glm::rotate(model, glm::radians(1.f), glm::vec3(0.1f, 0.f, 1.f));
         shader.Use();
-        //shader.SetUniformMat4("view", camera.GetView());
-        shader.SetUniformMat4("view", glm::mat4(1.f));
+        shader.SetUniformMat4("view", camera.GetView());
+        //shader.SetUniformMat4("view", glm::mat4(1.f));
         shader.SetUniformMat4("model", model);
         shader.SetUniformMat4("projection", projection);
         mesh.Draw();
@@ -80,5 +98,4 @@ int main()
     return 0;
 }
 
-//NOTE: when setting resolution/resizing window, the viewport must also be adjusted for the framebuffer, otherwise weird things happen
-//TASK: Implement the framebuffer into the Window now. FUCK I NEED 2D and 3D windows / methods!!!
+//NOTE: when setting resolution window, the viewport must also be adjusted for the framebuffer, otherwise weird things happen

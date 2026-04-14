@@ -7,6 +7,9 @@
 #include <chrono>
 #include <vector>
 
+//why start from 0->348 if first GLFW_KEY is 32?
+#define GLFW_KEY_FIRST 32
+
 #define UNRESIZABLE_WINDOW  GLFW_RESIZABLE, GLFW_FALSE //it's so cool that you can do this
 #define WINDOWED_FULLSCREEN GLFW_MAXIMIZED, GLFW_TRUE //could find a better name
 void SetWindowHint(int hint, int value);//to be called before constructing window! NEEDS glfwInit() before any hint...fuck
@@ -55,7 +58,10 @@ class Window //designed for ONE single window
     }Frames;
     Frames frames;
 
-    bool keyStates[GLFW_KEY_LAST + 1]; //vector to keep track of all key states. 349 is a big number but it's for simplicity
+    void InitKeys();
+    void InitButtons();
+    bool keyStates[GLFW_KEY_LAST + 1 - GLFW_KEY_FIRST]; //vector to keep track of all key states. 349 is a big number but it's for simplicity
+    bool buttonStates[4]; //mouse left, mouse right, mouse middle, mouse middle. GLFW_MOUSE_BUTTON_1 = 0 = GLFW_MOUSE_BUTTON_LEFT = GLFW_MOUSE_BUTTON_FIRST
 
     public:
     Window(int width, int height, const char* title); //AspectRatio doesn't work with !resizable
@@ -82,6 +88,9 @@ class Window //designed for ONE single window
     bool IsKeyPressed(int GLFW_KEY); //key presses should be a separate thing, inside like a System class or something
     bool IsKeyReleased(int GLFW_KEY);
     bool IsKeyDown(int GLFW_KEY);
+    bool IsMouseButtonPressed(int GLFW_MOUSE_BUTTON);
+    bool IsMouseButtonReleased(int GLFW_MOUSE_BUTTON);
+    bool IsMouseButtonDown(int GLFW_MOUSE_BUTTON);
     void ShowFPS();
 
     //Managers

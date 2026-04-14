@@ -1,12 +1,25 @@
 #include "WINDOW.hpp"
 
-std::vector<WindowHint> totalWindowHints; //THIS IS GLOBAL! MAKE IT A MEMBER!
+std::vector<WindowHint> totalWindowHints; //THIS IS GLOBAL! MAKE IT A MEMBER! could go inside the System class! 
 
 void SetWindowHint(int hint, int value)
 {
     if(totalWindowHints.size() % 5 == 0) 
     totalWindowHints.reserve(totalWindowHints.size()+5); //reserve size for 5 more hints for each 5 hints
     totalWindowHints.emplace_back(hint, value);
+}
+
+void ActivateWindowHints(std::vector<WindowHint> &windowHintsVec) // will be parameterless inside System
+{
+    for (int i = 0; i < windowHintsVec.size(); i++)
+    {
+        glfwWindowHint(windowHintsVec[i].hint, windowHintsVec[i].value);
+    }
+}
+
+void ClearWindowHints(std::vector<WindowHint>& windowHintsVec) //will be parameterless inside System
+{
+    std::vector<WindowHint>().swap(windowHintsVec);
 }
 
 //callbacks
@@ -90,7 +103,51 @@ void Window::InitFramebufferShader()
     const char* vSourceCode;
     const char* fSourceCode;
 
-    if(false) {std::cout << "This should be skipped";} //more like this will happen inside try{} and else inside catch{}
+    bool foundShaders = true; //obviously this will rely on a Shader class' program compilation
+    if(foundShaders) //just for testing
+    {
+        vSourceCode = "#version 460 core\n"
+                      "layout (location = 0) in vec2 aPos;\n"
+                      "layout(location = 1) in vec2 aTexCoords;\n"
+                      "out vec2 TexCoords;\n"
+                      "void main()\n"
+                      "{\n"
+                      "gl_Position = vec4(aPos.xy, 0.0, 1.0);\n"
+                      "TexCoords = aTexCoords;\n"
+                      "}\0";
+
+        fSourceCode = "#version 460 core\n"
+                      "out vec4 FragColor;\n"
+                      "in vec2 TexCoords;\n"
+                      "uniform sampler2D screenTex;\n"
+                      "const float offset = 1.0/300.0;\n"
+                      "void main()\n"
+                      "{\n"
+                      "vec2 offsets[9] = vec2[](\n"
+                      "vec2(-offset,  offset),\n"
+                      "vec2( 0.0f,    offset),\n"
+                      "vec2( offset,  offset),\n"
+                      "vec2(-offset,  0.0f),\n"
+                      "vec2( 0.0f,    0.0f),\n"
+                      "vec2( offset,  0.0f),\n"
+                      "vec2(-offset, -offset),\n"
+                      "vec2( 0.0f,   -offset),\n"
+                      "vec2( offset, -offset));\n"
+
+                      //"float kernel[9] = float[](1, 1, 1, 1, -7, 1, 1, 1, 1);\n"
+                      //"float kernel[9] = float[](-1, -1, -1, -1, 9, -1, -1, -1, -1);\n"
+                      //"float kernel[9] = float[](-1, -1, -1, -1, 8, -1, -1, -1, -1);\n"
+                      "float kernel[9] = float[](-1, 1, -1, 1, 1, 1, -1, 1, -1);\n"
+
+                      "vec3 sampleTex[9];\n"
+                      "for(int i = 0; i < 9; i++) {sampleTex[i] = vec3(texture(screenTex, TexCoords.st + offsets[i]));}\n"
+
+                      "vec3 color = vec3(0.0);\n"
+                      "for(int i = 0; i < 9; i++) {color += sampleTex[i] * kernel[i];}\n"
+
+                      "FragColor = vec4(color, 1.0);\n"
+                      "}\n";
+    } //more like this will happen inside try{} and else inside catch{}
     else //hardcoded source codes
     {
         vSourceCode = "#version 460 core\n"
@@ -128,7 +185,7 @@ void Window::InitFramebufferShader()
         {
             glGetShaderInfoLog(vShader, 256, NULL, infoLog);
             std::cout << infoLog;
-            throw std::runtime_error("ERROR::FRAMEBUFFER::SHADER::VERTEX::COMPILATION_ERROR");
+            throw std::runtime_error("ERROR::FRAMEBUFFER::SHADER::VERTEX::COMPILATION_ERROR\n");
         }
 
         fShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -139,7 +196,7 @@ void Window::InitFramebufferShader()
         {
             glGetShaderInfoLog(fShader, 256, NULL, infoLog);
             std::cout << infoLog;
-            throw std::runtime_error("ERROR::FRAMEBUFFER::SHADER::FRAGMENT::COMPILATION_ERROR");
+            throw std::runtime_error("ERROR::FRAMEBUFFER::SHADER::FRAGMENT::COMPILATION_ERROR\n");
         }
 
         canvasShader = glCreateProgram();
@@ -226,12 +283,6 @@ void Window::DrawFramebuffer()
     glBindVertexArray(0);
 }
 
-// void Window::ResizeFramebuffer(int width, int height) //I honestly think it's just the default framebuffer's Viewport that must be updated, maybe I change nothing on the custom framebuffer
-// {
-//     resolutionWidth = width;///resolutionWidth;
-//     resolutionHeight = height;///windowHeight;
-// }
-
 void Window::DeleteFramebuffer()
 {
     glDeleteBuffers(1, &canvasVBO);
@@ -241,8 +292,25 @@ void Window::DeleteFramebuffer()
     glDeleteRenderbuffers(1, &RBO);
 }
 
-//constructor
-Window::Window(int width, int height, const char* title)
+//input
+void Window::InitKeys()
+{
+    for (int i = GLFW_KEY_FIRST; i <= GLFW_KEY_LAST; i++)
+    {
+        keyStates[i - GLFW_KEY_FIRST] = false;
+    } // setting all keys as NOT pressed
+}
+
+void Window::InitButtons()
+{
+    for (int i = 0; i < 4; i++)
+    {
+        buttonStates[i] = false;
+    }
+}
+
+// constructor
+Window::Window(int width, int height, const char *title)
 {
     glfwSetErrorCallback(glfw_error_callback); //main purpose: logging and diagnosing
     try
@@ -254,16 +322,12 @@ Window::Window(int width, int height, const char* title)
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        for(int i = 0; i < totalWindowHints.size(); i++)
-        {
-            glfwWindowHint(totalWindowHints[i].hint, totalWindowHints[i].value);
-        }
-        std::vector<WindowHint>().swap(totalWindowHints); //"freeing" the hint vector
+        ActivateWindowHints(totalWindowHints);
+        ClearWindowHints(totalWindowHints); //"freeing" the hint vector
 
-        for(int i = 0; i <= GLFW_KEY_LAST; i++)
-        {
-            keyStates[i] = false;
-        } // setting all keys as NOT pressed
+            // setting up button/mouse input info
+            Window::InitKeys();
+        Window::InitButtons();
         
         monitor = glfwGetPrimaryMonitor();
         const GLFWvidmode* vidMode = glfwGetVideoMode(monitor);
@@ -316,6 +380,8 @@ Window::Window(int width, int height, const char* title)
     glViewport(0, 0, windowWidth, windowHeight);
 }
 
+
+
 //Getters
 GLFWwindow* Window::GetPointer()
 {
@@ -341,6 +407,8 @@ int Window::GetHeight()
 {
     return windowHeight;
 }
+
+
 
 //Setters
 void Window::SetSwapInterval(bool interval) //1 or 0. 1 by default.
@@ -426,6 +494,8 @@ void Window::ToggleFullscreen() //Attention! If window is already fullcreen, the
     }
 }
 
+
+
 //Checkers
 bool Window::ShouldClose()
 {
@@ -436,8 +506,8 @@ bool Window::ShouldClose()
 bool Window::IsKeyPressed(int GLFW_KEY)
 {
     bool isPressed = (glfwGetKey(window, GLFW_KEY) == GLFW_PRESS);
-    bool result = (!keyStates[GLFW_KEY] && isPressed);
-    keyStates[GLFW_KEY] = isPressed;
+    bool result = (!keyStates[GLFW_KEY - GLFW_KEY_FIRST] && isPressed);
+    keyStates[GLFW_KEY - GLFW_KEY_FIRST] = isPressed;
     return result;
 }
 
@@ -454,6 +524,27 @@ bool Window::IsKeyDown(int GLFW_KEY)
     return (glfwGetKey(window, GLFW_KEY) == GLFW_PRESS);
 }
 
+bool Window::IsMouseButtonPressed(int GLFW_MOUSE_BUTTON)
+{
+    bool isPressed = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON) == GLFW_PRESS);
+    bool result = (!buttonStates[GLFW_MOUSE_BUTTON] && isPressed);
+    buttonStates[GLFW_MOUSE_BUTTON] = isPressed;
+    return result;
+}
+
+bool Window::IsMouseButtonReleased(int GLFW_MOUSE_BUTTON)
+{
+    bool isPressed = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON) == GLFW_PRESS);
+    bool result = (buttonStates[GLFW_MOUSE_BUTTON] && !isPressed);
+    buttonStates[GLFW_MOUSE_BUTTON] = isPressed;
+    return result;
+}
+
+bool Window::IsMouseButtonDown(int GLFW_MOUSE_BUTTON)
+{
+    return (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON));
+}
+
 void Window::ShowFPS()
 {
     double currentTime = glfwGetTime(); //to set frames once per second
@@ -467,6 +558,8 @@ void Window::ShowFPS()
         lastTime = currentTime;
     }
 }
+
+
 
 //Managers
 void Window::ClearColor(float r, float g, float b, float a)

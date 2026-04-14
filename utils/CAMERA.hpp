@@ -26,7 +26,8 @@ class Camera
     float sensitivity;
     float zoom; //thinking about this
     KEYS inputKeys;
-    public:
+
+public:
     Camera(GLFWwindow* window, glm::vec3 pos = glm::vec3(0.f, 0.f, 3.f), glm::vec3 target = glm::vec3(0.f), glm::vec3 up = glm::vec3(0.f, 1.f, 0.f));
 
     //Setters
@@ -38,6 +39,7 @@ class Camera
 
     void ToggleScrolling(float limit); //this will need a new callback...I need to implement projection here as well
 
+    void SetCursorPosCallback(GLFWwindow* window, bool active); //another reason to try and have GLFWwindow* as a variable
     void ChangeControls(int GLFW_KEY_forward, int GLFW_KEY_backward, int GLFW_KEY_left, int GLFW_KEY_right); //NOT the most necesarry function, but it's fun
 
     //Getters
