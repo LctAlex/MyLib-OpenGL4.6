@@ -1,26 +1,5 @@
 #include "WINDOW.hpp"
-
-std::vector<WindowHint> totalWindowHints; //THIS IS GLOBAL! MAKE IT A MEMBER! could go inside the System class! 
-
-void SetWindowHint(int hint, int value)
-{
-    if(totalWindowHints.size() % 5 == 0) 
-    totalWindowHints.reserve(totalWindowHints.size()+5); //reserve size for 5 more hints for each 5 hints
-    totalWindowHints.emplace_back(hint, value);
-}
-
-void ActivateWindowHints(std::vector<WindowHint> &windowHintsVec) // will be parameterless inside System
-{
-    for (int i = 0; i < windowHintsVec.size(); i++)
-    {
-        glfwWindowHint(windowHintsVec[i].hint, windowHintsVec[i].value);
-    }
-}
-
-void ClearWindowHints(std::vector<WindowHint>& windowHintsVec) //will be parameterless inside System
-{
-    std::vector<WindowHint>().swap(windowHintsVec);
-}
+#include "System.hpp"
 
 //callbacks
 void Window::glfw_error_callback(int error, const char* description)
@@ -31,12 +10,12 @@ void Window::glfw_error_callback(int error, const char* description)
 void Window::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
-    Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window)); //I need to study this one
-    if(win)
+    System* sys = static_cast<System*>(glfwGetWindowUserPointer(window)); //I need to study this one
+    if(sys->window)
     {
         //this doesn't update in out main class
-        win->windowWidth = width;
-        win->windowHeight = height;
+        sys->window->windowWidth = width;
+        sys->window->windowHeight = height;
     }
 }
 
@@ -45,7 +24,11 @@ void Window::glfw_window_maximize_callback(GLFWwindow* window, int maximized) //
     if(maximized)
         glfwMaximizeWindow(window);
     else
-        glfwRestoreWindow(window);
+    {
+        //maybe a custom MinimizeWindow() [&MaximizeWindow()] function?
+        System *sys = static_cast<System *>(glfwGetWindowUserPointer(window));
+        glfwSetWindowSize(sys->window->GetPointer(), sys->window->initialWidth, sys->window->initialHeight);
+    }
 }
 
 void Window::glfw_window_iconify_callback(GLFWwindow* window, int iconified) //useless
@@ -103,8 +86,8 @@ void Window::InitFramebufferShader()
     const char* vSourceCode;
     const char* fSourceCode;
 
-    bool foundShaders = true; //obviously this will rely on a Shader class' program compilation
-    if(foundShaders) //just for testing
+    bool foundShaders = false; //obviously this will rely on a Shader class' program compilation
+    if(!foundShaders) //just for testing
     {
         vSourceCode = "#version 460 core\n"
                       "layout (location = 0) in vec2 aPos;\n"
@@ -172,7 +155,7 @@ void Window::InitFramebufferShader()
                       "}\n";
     }
 
-    try
+    try//this will also go inside 'else'
     {
         int success = 1;
         char infoLog[256];
@@ -310,62 +293,38 @@ void Window::InitButtons()
 }
 
 // constructor
-Window::Window(int width, int height, const char *title)
+Window::Window(int width, int height, const char* title)
 {
-    glfwSetErrorCallback(glfw_error_callback); //main purpose: logging and diagnosing
-    try
+    static int windowCount = 0;
+    monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* vidMode = glfwGetVideoMode(monitor);
+    monitorWidth = vidMode->width;
+    monitorHeight = vidMode->height;
+    initialWidth = width;
+    initialHeight = height;
+
+    window = glfwCreateWindow(width, height, title, NULL, NULL);
+    if(window == NULL)
     {
-        if(!glfwInit()) 
-        throw std::runtime_error("ERROR::GLFW::FAILED_INITIALIZATION\n");
-        
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwTerminate();
+        throw std::runtime_error("ERROR::GLFW::FAILED_WINDOW_CREATION\n");
+    }
 
-        ActivateWindowHints(totalWindowHints);
-        ClearWindowHints(totalWindowHints); //"freeing" the hint vector
+    glfwGetWindowSize(window, &windowWidth, &windowHeight);
 
-            // setting up button/mouse input info
-            Window::InitKeys();
-        Window::InitButtons();
-        
-        monitor = glfwGetPrimaryMonitor();
-        const GLFWvidmode* vidMode = glfwGetVideoMode(monitor);
-        monitorWidth = vidMode->width;
-        monitorHeight = vidMode->height;
+    windowCount++;
+    std::cout << "Window #" << windowCount << " created: " << Window::GetWidth() << " : " << Window::GetHeight() << '\n';
 
-        initialWidth = width;
-        initialHeight = height;
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetWindowMaximizeCallback(window, glfw_window_maximize_callback);
+    glfwSetWindowIconifyCallback(window, glfw_window_iconify_callback);
+    glfwSetKeyCallback(window, glfw_key_callback);
 
-        windowWidth = width;
-        windowHeight = height;
+    glfwMakeContextCurrent(window);
 
-        window = glfwCreateWindow(width, height, title, NULL, NULL);
-        
-        std::cout << "Window created: " << Window::GetWidth() << " : " << Window::GetHeight() << '\n';
-        
-        if(window == NULL)
-        {
-            glfwTerminate();
-            throw std::runtime_error("ERROR::GLFW::FAILED_WINDOW_CREATION\n");
-        }
-        glfwSetWindowUserPointer(window, this); //in order to use glfwGetWindowUserPointer() elsewhere
-        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-        glfwSetWindowMaximizeCallback(window, glfw_window_maximize_callback);
-        glfwSetWindowIconifyCallback(window, glfw_window_iconify_callback);
-        glfwSetKeyCallback(window, glfw_key_callback);
-
-        glfwMakeContextCurrent(window);
-        
-        //loading glad
-        if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    //loading glad
+    if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         throw std::runtime_error("ERROR::GLAD::FAILED_LOADING\n");
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-        exit(EXIT_FAILURE);
-    }
 
     Window::InitFramebuffer();
     Window::SetSwapInterval(1);
@@ -375,12 +334,7 @@ Window::Window(int width, int height, const char *title)
     frames.previous = frames.current;
 
     isFullscreen = false;
-
-    glClearColor(0.f, 0.f, 0.f, 1.f); //default Color Clearing
-    glViewport(0, 0, windowWidth, windowHeight);
 }
-
-
 
 //Getters
 GLFWwindow* Window::GetPointer()
@@ -408,10 +362,8 @@ int Window::GetHeight()
     return windowHeight;
 }
 
-
-
 //Setters
-void Window::SetSwapInterval(bool interval) //1 or 0. 1 by default.
+void Window::SetSwapInterval(bool interval)
 {
     glfwSwapInterval(interval);
 }
@@ -425,8 +377,10 @@ void Window::SetResolution(int xRes, int yRes)
 {
     if(windowWidth < xRes || windowHeight < yRes || xRes <= 0 || yRes <= 0)
     {
-        std::cout << "Resolution (" << xRes << ':' << yRes
-                << ") is incompatible with window size (" << windowWidth << ':' << windowHeight << ")\n";
+        std::cout << "Resolution (" 
+                << xRes << ':' << yRes
+                << ") is incompatible with window size (" 
+                << windowWidth << ':' << windowHeight << ")\n";
         return; 
     }
     resolutionWidth = xRes;

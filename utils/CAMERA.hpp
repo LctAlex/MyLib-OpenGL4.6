@@ -12,10 +12,12 @@
 class Camera
 {
     private:
+    static int cameraCount;
     static void mouse_callback(GLFWwindow* window, double xPos, double yPos);
+    static void scroll_callback(GLFWwindow* window ); //perfect reason why Camera should have a 'projection' member: To change it direcly inside the callback. Settable
     struct KEYS{ int FORWARD = GLFW_KEY_W; int BACKWARD = GLFW_KEY_S; int LEFT = GLFW_KEY_D; int RIGHT = GLFW_KEY_A;};
     enum PROJ{PERSPECTIVE_PROJ, ORTOGRAPHIC_PROJ};
-    bool firstMouse;
+    bool startMouse;
     float lastX, lastY;
     float yaw, pitch;
     glm::mat4 view, projection;
@@ -39,7 +41,7 @@ public:
 
     void ToggleScrolling(float limit); //this will need a new callback...I need to implement projection here as well
 
-    void SetCursorPosCallback(GLFWwindow* window, bool active); //another reason to try and have GLFWwindow* as a variable
+    void SetCursorPosCallback(GLFWwindow* window, bool active); //maybe ToggleCursorPosCallback()? Based on startMouse
     void ChangeControls(int GLFW_KEY_forward, int GLFW_KEY_backward, int GLFW_KEY_left, int GLFW_KEY_right); //NOT the most necesarry function, but it's fun
 
     //Getters

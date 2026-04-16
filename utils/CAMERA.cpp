@@ -1,38 +1,43 @@
 #include "CAMERA.hpp"
+#include "SYSTEM.hpp"
 
 void Camera::mouse_callback(GLFWwindow* window, double xPos, double yPos)
 {
-    Camera* cam = static_cast<Camera*>(glfwGetWindowUserPointer(window));
+    System* sys = static_cast<System*>(glfwGetWindowUserPointer(window));
 
-    if(cam)
+    if(sys)
     {
-        if(cam->firstMouse)
+        if(sys->camera->startMouse)
         {
-            cam->lastX = xPos;
-            cam->lastY = yPos;
-            cam->firstMouse = false;
+            sys->camera->lastX = xPos;
+            sys->camera->lastY = yPos;
+            sys->camera->startMouse = false;
         }
 
-        float xOffset = xPos - cam->lastX;
-        float yOffset = cam->lastY - yPos;
+        float xOffset = xPos - sys->camera->lastX;
+        float yOffset = sys->camera->lastY - yPos;
 
         const float sensitivity = 0.1f;
         xOffset *= sensitivity;
         yOffset *= sensitivity;
-        cam->lastX = xPos;
-        cam->lastY = yPos;
+        sys->camera->lastX = xPos;
+        sys->camera->lastY = yPos;
 
-        cam->yaw += xOffset;
-        cam->pitch += yOffset;
-    
-        if(cam->pitch > 89.f) cam->pitch = 89.f;
-        if(cam->pitch < -89.f) cam->pitch = -89.f;
+        sys->camera->yaw += xOffset;
+        sys->camera->pitch += yOffset;
+
+        if (sys->camera->pitch > 89.f)
+            sys->camera->pitch = 89.f;
+        if (sys->camera->pitch < -89.f)
+            sys->camera->pitch = -89.f;
     }
 }
 
 Camera::Camera(GLFWwindow* window, glm::vec3 pos, glm::vec3 target, glm::vec3 up)
 {
-    firstMouse = true;
+    static int cameraCount = 0;
+    cameraCount++;
+    startMouse = true;
 
     cameraPos = pos;
     cameraFront = glm::normalize(target-pos);
@@ -46,10 +51,8 @@ Camera::Camera(GLFWwindow* window, glm::vec3 pos, glm::vec3 target, glm::vec3 up
 
     //projection = glm::perspective(glm::radians(45.f), (float)window.GetWidth()/(float)window.GetHeight(), 0.1f, 100.f); //yeah we need a fucking Window member
 
-    glfwSetWindowUserPointer(window, this); //crucial! why? we change *Camera members* inside the callback.
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    //Camera::SetCursorPosCallback(window, true);
-    glfwSetCursorPosCallback(window, Camera::mouse_callback);
+    Camera::SetCursorPosCallback(window, true);
 }
 
 void Camera::ResetProjection(PROJ newProj, float newFOV, int windowWidth, int windowHeight, float nearPlane, float farPlane)
@@ -73,7 +76,7 @@ void Camera::SetCursorPosCallback(GLFWwindow* window, bool active)
     if(active) glfwSetCursorPosCallback(window, Camera::mouse_callback);
     else 
     {
-        firstMouse = true; //cool thing! thus we can change this variable and use it IN SetCursorPosCallback(). SO COOL!!!
+        startMouse = true;
         glfwSetCursorPosCallback(window, NULL);
     }
 }

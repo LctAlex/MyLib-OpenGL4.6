@@ -20,7 +20,7 @@ Shader::Shader(const char* vertexFileName, const char* fragmentFileName)
         vertexShaderFile.open(vertexFileName);
         fragmentShaderFile.open(fragmentFileName);
         if(!vertexShaderFile.is_open()) throw std::runtime_error("ERROR::SHADER::VERTEX::OPEN_FAILURE");
-        if(!fragmentShaderFile.is_open()) throw std::runtime_error("ERROR::FRAGMENT::VERTEX::OPEN_FAILURE");
+        if(!fragmentShaderFile.is_open()) throw std::runtime_error("ERROR::FRAGMENT::FRAGMENT::OPEN_FAILURE");
     
         vStream << vertexShaderFile.rdbuf();
         fStream << fragmentShaderFile.rdbuf();

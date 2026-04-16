@@ -7,25 +7,16 @@
 #include <chrono>
 #include <vector>
 
-//why start from 0->348 if first GLFW_KEY is 32?
+//why start from 0->348 if first GLFW_KEY is 32? Goes into Input class
 #define GLFW_KEY_FIRST 32
 
-#define UNRESIZABLE_WINDOW  GLFW_RESIZABLE, GLFW_FALSE //it's so cool that you can do this
-#define WINDOWED_FULLSCREEN GLFW_MAXIMIZED, GLFW_TRUE //could find a better name
-void SetWindowHint(int hint, int value);//to be called before constructing window! NEEDS glfwInit() before any hint...fuck
-struct WindowHint
-{
-    int hint;
-    int value;
-    WindowHint(int h, int v):hint(h),value(v){} //constructor
-};
-
-class Window //designed for ONE single window
+class Window
 {
     private:
     //callbacks cannot be non-static!
     static void glfw_error_callback(int error, const char* description); //encapsulating so nothing can use it outside the class, ONE WINDOW
     static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+    static void window_size_callback(GLFWwindow* window, int width, int height);
     static void glfw_window_maximize_callback(GLFWwindow* window, int maximized); //alright so this and window_iconify are kinda useless...That's all
     static void glfw_window_iconify_callback(GLFWwindow* window, int iconified);
     static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods); //automatic ESCAPE key checking
@@ -63,9 +54,9 @@ class Window //designed for ONE single window
     bool keyStates[GLFW_KEY_LAST + 1 - GLFW_KEY_FIRST]; //vector to keep track of all key states. 349 is a big number but it's for simplicity
     bool buttonStates[4]; //mouse left, mouse right, mouse middle, mouse middle. GLFW_MOUSE_BUTTON_1 = 0 = GLFW_MOUSE_BUTTON_LEFT = GLFW_MOUSE_BUTTON_FIRST
 
-    public:
-    Window(int width, int height, const char* title); //AspectRatio doesn't work with !resizable
-    
+    public : 
+    Window(int width, int height, const char *title); // AspectRatio doesn't work with !resizable
+
     //Getters
     GLFWwindow* GetPointer();
     GLFWmonitor* GetMonitor();
