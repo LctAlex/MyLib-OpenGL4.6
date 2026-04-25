@@ -1,4 +1,4 @@
-#include "Shader.hpp"
+#include "SHADER.hpp"
 
 Shader::Shader(const char* vertexFileName, const char* fragmentFileName)
 {
@@ -115,6 +115,15 @@ void Shader::Use()
     glUseProgram(ID);
 }
 
+void Shader::Delete()
+{
+    glDeleteProgram(ID);
+}
+
+Shader::~Shader(){}
+
+// I NEED A VECTOR TO HOLD ALL unfiromNames AND locations, so I dont call glGetUniformName everytime
+
 void Shader::SetUniformInt(const GLchar* uniformName, int i)
 {
     int loc = glGetUniformLocation(ID, uniformName);
@@ -149,9 +158,4 @@ void Shader::SetUniformMat4(const GLchar* uniformName, glm::mat4 mat4)
 {
     int loc = glGetUniformLocation(ID, uniformName);
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(mat4));
-}
-
-Shader::~Shader()
-{
-    glDeleteProgram(ID);
 }

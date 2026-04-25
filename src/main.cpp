@@ -1,81 +1,87 @@
-#include "../utils/SYSTEM.hpp"
+#include "../utils/Window.hpp"
+#include "../utils/Framebuffer.hpp"
+#include "../utils/Shader.hpp"
+#include "../utils/Shape.hpp"
+#include "../utils/Camera.hpp"
 
-#include "../utils/MESH.hpp"
-#include "../utils/SHADER.hpp"
+#include "../include/glm/glm.hpp"
+#include "../include/glm/gtc/matrix_transform.hpp"
 
-//SetAspectRatio()
-//ToggleFullscreen()
-//SetWindowHint(HINT_WINDOWED_FULLSCREEN)
+#include <iostream>
 
-//A fucking mess ^
-
+void glfw_window_pos_callback(GLFWwindow* window, int xpos, int ypos)
+{
+    Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
+    win->ClearColor(0.f, 0.f, 0.f);
+    glfwSwapBuffers(window);
+}
 
 int main()
 {
-    System system;
+    Window window; //glfwInit() + set basic hints;
+    window.SetHint(HINT_UNRESIZABLE_WINDOW);
+    window.Create(1000, 800, "test");
 
-    system.SetWindowHint(HINT_WINDOWED_FULLSCREEN);
+    //testing
+    glfwSetWindowUserPointer(window.GetHandler(), &window);
+    glfwSetWindowPosCallback(window.GetHandler(), glfw_window_pos_callback);
 
-    system.CreateWindow(800, 800, "Hello System");
-    system.CreateCamera();
-
-    const float vertices[] =
-    {
-        -.5f, .5f, 0.f,
+    const float v[] = {
         -.5f, -.5f, 0.f,
+        .5f, -.5f, 0.f,
         .5f, .5f, 0.f,
-        .5f, -.5f, 0.f
-    };
+        -.5f, .5f, 0.f};
 
-    const unsigned int indices[] =
-    {
+    const unsigned int i[] = {
         0, 1, 2,
-        2, 1, 3
-    };
+        2, 3, 0};
 
-    Mesh mesh(vertices, indices, 12, 6, 3, 3);
-    Shader shader("shaders/vertMVPpc.glsl", "shaders/fragpc.glsl");
+    Shape shape(v, i, 12, 6, 3, 3);
+    Shader shapeShader("shaders/vertMVP.glsl", "shaders/frag.glsl");
 
-    glm::mat4 model = glm::mat4(1.f);
-    glm::mat4 proj = glm::perspective(glm::radians(45.f), 
-                    (float)system.window->GetWidth()/system.window->GetHeight(), 0.1f, 100.f);
-    
-    while(!system.window->ShouldClose())
-    {
+    Camera camera(glm::vec3(0.f, 0.f, -3.f), glm::vec3(0.f));
+    camera.SetProjectionToPersp(45.f, window.GetWidth(), window.GetHeight(), .1f, 100.f);
 
-        if(system.window->IsKeyPressed(GLFW_KEY_SPACE)) system.window->SetResolution(system.window->GetResX()/2,
-                                                                                    system.window->GetResY()/2);
-        if(system.window->IsKeyPressed(GLFW_KEY_R)) system.window->SetResolution(system.window->GetWidth(),
-                                                                                    system.window->GetHeight());
+    ScreenFramebuffer screenFB(window.GetWidth(), window.GetHeight());
+    bool resized = false;
+
+    while(!window.ShouldClose())
+    { 
+        if(glfwGetTime()>3.f && !resized)
+        {
+            screenFB.Resize(100, 50);
+        }
+
+        window.StartDrawing();
         
-        if(system.window->IsKeyPressed(GLFW_KEY_E))
-        {
-            system.window->DisableCursor();
-            system.camera->SetCursorPosCallback(system.window->GetPointer(), true);
-        }
-        if (system.window->IsKeyPressed(GLFW_KEY_N))
-        {
-            system.window->EnableCursor();
-            system.camera->SetCursorPosCallback(system.window->GetPointer(), false);
-        }
+        screenFB.Bind();
+        
+        glViewport(0, 0, screenFB.GetWidth(), screenFB.GetHeight()); //IMPORTANT
+        glEnable(GL_DEPTH_TEST);
 
-        system.window->StartUpdate();
-        system.window->ClearColorDepth();
+        window.ClearColor((unsigned int)GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, 1.f);
 
-        model = glm::rotate(model, glm::radians(1.f), glm::vec3(0.f, 0.f, 0.5f));
+        shape.model = glm::rotate(shape.model, glm::radians(0.25f) * window.GetDeltaTime() * 10, glm::vec3(0.f, 0.f, 1.f));
+        camera.UpdateVectors();
 
-        system.camera->Update(system.window);
+        shapeShader.Use();
+        shapeShader.SetUniformMat4("model", shape.model);
+        shapeShader.SetUniformMat4("view", camera.GetView());
+        shapeShader.SetUniformMat4("projection", camera.GetProjection());
 
-        shader.Use();
-        shader.SetUniformMat4("model", model);
-        shader.SetUniformMat4("projection", proj);
-        shader.SetUniformMat4("view", system.camera->GetView());
+        shape.Draw();
 
-        mesh.Draw();
+        screenFB.Unbind();
 
-        system.window->EndUpdate();
+        glViewport(0, 0, window.GetWidth(), window.GetHeight()); //IMPORTANT 2
+        glDisable(GL_DEPTH_TEST);
+
+        window.ClearColor(1.f, 1.f, 1.f);
+        screenFB.Draw();
+
+        window.TitleFPS();
+        window.EndDrawing();
     }
 
-    system.Close();
     return 0;
 }
