@@ -68,14 +68,14 @@ int main()
         }
         plane.SetInstanceTransforms(transformations, 50);
 
-        plane.model = glm::rotate(plane.model, glm::degrees(window.GetDeltaTime()/100.f), glm::vec3(0.5f, 0.f, 0.5f));
+        plane.model = glm::rotate(plane.model, glm::degrees(window.GetDeltaTime()/100.f), glm::vec3(0.5f, .7f, 0.5f));
 
         window.StartDrawing();
 
         window.ClearColor((GLbitfield)GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, 0.4f, 0.5f, 1.f);
 
-        // camera.ResetVectors(glm::vec3(camera.GetPosition().x, abs(sin(glfwGetTime()/5.f)), 3.f));
-        // camera.UpdateVectors();
+        camera.ResetVectors(glm::vec3(camera.GetPosition().x, abs(sin(glfwGetTime()/5.f)), 3.f));
+        camera.UpdateVectors();
 
         // planeShader.Use();
         // planeShader.SetUniformMat4("view", camera.GetView());

@@ -36,7 +36,8 @@ $(OBJ_DIR)/%.o: $(UTILS_DIR)/%.cpp
 	@echo Compiling $< to $@
 
 $(TARGET): $(OBJECTS)
-	$(CC) $^ -o $@ -I$(INCLUDE_DIR) -L$(LIB_DIR) $(GLFLAGS) $(CFLAGS)
+	$(CC) $^ -o $@ -I$(INCLUDE_DIR) -L$(LIB_DIR) $(GLFLAGS)
+#	$(CC) $^ -o $@ -I$(INCLUDE_DIR) -L$(LIB_DIR) $(GLFLAGS) $(CFLAGS)
 
 #COMMANDS:
 

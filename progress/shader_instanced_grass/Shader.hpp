@@ -3,8 +3,6 @@
 #include "../include/glm/glm.hpp"
 #include "../include/glm/gtc/type_ptr.hpp"
 
-#include "ShaderData.hpp"
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -28,3 +26,7 @@ class Shader
 
 #define POSITION_COLOR "shaders/mesh/vertMVP_PC.glsl","shaders/mesh/fragMVP_PC.glsl"
 #define POSITION_COLOR_INSTANCED "shaders/mesh/instanced/vertMVP_PCI.glsl", "shaders/mesh/fragMVP_PC.glsl"
+//Shader::SetUniformInstances();
+//Shader::instances -member?
+//class InstancedShader???
+//The way it goes, I may need to make the CONSTRUCTOR an actual SHADER CONSTRUCTOR
