@@ -36,8 +36,8 @@ public:
     //managers
     void ClearColor(float r = .5f, float g = .5f, float b = .5f, float a = 1.f);
     void ClearColor(GLbitfield buffers = GL_COLOR_BUFFER_BIT, float r = .5f, float g = .5f, float b = .5f, float a = 1.f);
-    void StartDrawing();
-    void EndDrawing();
+    void StartDrawing(); //has yet to find a purpose. Maybe start drawing on a Framebuffer?
+    void EndDrawing(); //handles event polling + buffer swapping
 
     ~Window();
 

@@ -53,6 +53,6 @@ public:
     void Reset(glm::vec3 newPos = glm::vec3(0.f, 0.f, 3.f), glm::vec3 newTarget = glm::vec3(0.f));
     void ProcessInput(Window* window);
     void UpdateVectors();
-    void Update(Window* window); //has UpdateVectors and ProcessInput, atp we should have a window pointer as member
+    void Update(Window* window);
     ~Camera();
 };

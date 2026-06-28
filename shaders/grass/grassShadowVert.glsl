@@ -23,9 +23,14 @@ vec3 calculateSway(vec3 windDirection, float windForce)
 
 out vec3 Color;
 
+uniform mat4 lightSpaceMatrix; //projection + view of the LIGHT (for shadow)
+out vec4 FragPosLightSpace;
+
 void main()
 {
-    vec3 swayOffset = calculateSway(windDirection, windForce);
-    gl_Position = projection*view*model*instanceModel*vec4(aPos + swayOffset, 1.0);
     Color = aColor;// + (instanceModel*vec4(aPos, 1.0)).xyz;
+    vec3 swayOffset = calculateSway(windDirection, windForce);
+    FragPosLightSpace = lightSpaceMatrix * /*model **/instanceModel * vec4(aPos + swayOffset, 1.0);
+    
+    gl_Position = projection*view*/*model **/instanceModel*vec4(aPos + swayOffset, 1.0);
 }

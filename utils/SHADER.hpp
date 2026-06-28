@@ -27,4 +27,6 @@ class Shader
 };
 
 #define POSITION_COLOR "shaders/mesh/vertMVP_PC.glsl","shaders/mesh/fragMVP_PC.glsl"
+#define POSITION_COLOR_SHADOW "shaders/mesh/shadowed/vertMVP_PCS.glsl", "shaders/mesh/shadowed/fragMVP_PCS.glsl"
 #define POSITION_COLOR_INSTANCED "shaders/mesh/instanced/vertMVP_PCI.glsl", "shaders/mesh/fragMVP_PC.glsl"
+#define POSITION_COLOR_INSTANCED_SHADOW "..."

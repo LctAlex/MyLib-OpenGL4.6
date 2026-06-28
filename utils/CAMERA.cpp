@@ -1,5 +1,36 @@
 #include "Camera.hpp"
 
+void Camera::glfw_mouse_callback(GLFWwindow *window, double xPos, double yPos)
+{
+    Camera* cam = static_cast<Camera *>(glfwGetWindowUserPointer(window));
+
+    if (cam)
+    {
+        if (cam->startMouse)
+        {
+            cam->lastX = xPos;
+            cam->lastY = yPos;
+            cam->startMouse = false;
+        }
+
+        float xOffset = xPos - cam->lastX;
+        float yOffset = cam->lastY - yPos;
+
+        xOffset *= cam->sensitivity;
+        yOffset *= cam->sensitivity;
+        cam->lastX = xPos;
+        cam->lastY = yPos;
+
+        cam->yaw += xOffset;
+        cam->pitch += yOffset;
+
+        if (cam->pitch > 89.f)
+            cam->pitch = 89.f;
+        if (cam->pitch < -89.f)
+            cam->pitch = -89.f;
+    }
+}
+
 Camera::Camera(glm::vec3 pos, glm::vec3 target, glm::vec3 up)
 {
     startMouse = true;
@@ -12,9 +43,11 @@ Camera::Camera(glm::vec3 pos, glm::vec3 target, glm::vec3 up)
     yaw = glm::degrees(atan2(cameraFront.z, cameraFront.x));
 
     speed = 2.5f;
-    sensitivity = 0.1f;
+    sensitivity = 0.05f;
 
     projection = glm::ortho(-1.f, 1.f, -1.f, 1.f, 0.1f, 10.f);
+
+    Camera::UpdateVectors();
 }
 
 void Camera::SetSpeed(float newSpeed)
@@ -71,4 +104,12 @@ void Camera::UpdateVectors()
     cameraUp = glm::normalize(glm::cross(cameraRight, cameraFront));
 }
 
-Camera::~Camera(){};
+void Camera::ProcessMovement(Input &input, float deltaTime)
+{
+    if(input.IsKeyDown(movementKeys.forward)) cameraPos += cameraFront * speed * deltaTime;
+    if(input.IsKeyDown(movementKeys.backward)) cameraPos -= cameraFront * speed * deltaTime;
+    if(input.IsKeyDown(movementKeys.left)) cameraPos -= cameraRight * speed * deltaTime;
+    if(input.IsKeyDown(movementKeys.right)) cameraPos += cameraRight * speed * deltaTime;
+}
+
+Camera::~Camera() {};

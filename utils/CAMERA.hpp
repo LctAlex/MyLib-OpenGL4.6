@@ -5,8 +5,11 @@
 #include "../include/glm/glm.hpp"
 #include "../include/glm/gtc/matrix_transform.hpp"
 
+#include "Input.hpp"
+
 #include <iostream>
 
+//NOTE: Don't forget to UpdateVectors()
 class Camera
 {
     private:
@@ -20,8 +23,11 @@ class Camera
     float speed;
     float sensitivity;
     float zoom;
-
+    struct {int forward = GLFW_KEY_W; int backward = GLFW_KEY_S; int left = GLFW_KEY_A; int right = GLFW_KEY_D;} movementKeys;
+    
     public:
+    static void glfw_mouse_callback(GLFWwindow *window, double xPos, double yPos);
+    //static void glfw_scroll_callback();
     Camera(glm::vec3 pos = glm::vec3(0.f, 0.f, 3.f), glm::vec3 target = glm::vec3(0.f), glm::vec3 up = glm::vec3(0.f, 1.f, 0.f));
 
     //setters
@@ -38,5 +44,7 @@ class Camera
     //managers
     void ResetVectors(glm::vec3 newPos = glm::vec3(0.f, 0.f, 3.f), glm::vec3 newTarget = glm::vec3(0.f), glm::vec3 newUp = glm::vec3(0.f, 1.f, 0.f));
     void UpdateVectors(); //goes inside callback? Not necesarily, perhaps we want camera updates even when we don't move it
+    void ProcessMovement(Input& input, float deltaTime = 1.0f);
+    void Update(Input& input);
     ~Camera();
 };

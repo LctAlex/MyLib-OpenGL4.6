@@ -9,6 +9,5 @@ class Grass
     public:
     Mesh mesh;
     Grass(glm::vec3 baseColor = glm::vec3(0.3f, 0.8f, 0.2f), glm::vec3 tipColor = glm::vec3(0.2f, 0.5f, 0.1f));
-    //float baseRadius(); //return half of width of grass blade's base
     ~Grass();
 };

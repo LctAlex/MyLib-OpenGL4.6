@@ -22,7 +22,11 @@ Shader::Shader(const char* vertexFileName, const char* fragmentFileName)
     {
         vertexShaderFile.open(vertexFileName);
         fragmentShaderFile.open(fragmentFileName);
-        if(!vertexShaderFile.is_open()) throw std::runtime_error("ERROR::SHADER::VERTEX::OPEN_FAILURE");
+        if(!vertexShaderFile.is_open())
+        {
+            std::cout << vertexFileName << '\n';
+            throw std::runtime_error("ERROR::SHADER::VERTEX::OPEN_FAILURE");
+        }
         if(!fragmentShaderFile.is_open()) 
         {
             std::cout << fragmentFileName << '\n'; //add this to exception class

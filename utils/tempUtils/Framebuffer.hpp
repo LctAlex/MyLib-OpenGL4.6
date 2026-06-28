@@ -11,7 +11,7 @@ class Framebuffer
 {
     protected:
     unsigned int FBO;
-    Texture2D Tex;
+    //Texture2D Tex;
     void CheckComplete();
     
     public:

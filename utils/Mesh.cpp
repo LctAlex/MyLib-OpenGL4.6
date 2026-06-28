@@ -171,24 +171,27 @@ Mesh Mesh::createQuad()
     return Mesh(vertices, indices, 12, 6, 3, 3);
 }
 
+// Mesh Mesh::createCube(){}
+
 Mesh Mesh::createCanvas()
 { 
     const float vertices[] =
     {
-        -1.f, -1.f, 0.f,    0.f,
-        1.f, 1.f, 1.f,      1.f,
-        -1.f, 1.f, 0.f,     1.f,
-        1.f, -1.f, 1.f,     0.f
+        //X Y           //TexCoords
+        -1.f, -1.f,      0.f, 0.f,
+        1.f, 1.f,        1.f, 1.f,
+        -1.f, 1.f,       0.f, 1.f,
+        1.f, -1.f,       1.f, 0.f
     };
     const unsigned int indices[] = 
     {
         0, 1, 2,
         0, 3, 1
     };
-    return Mesh(vertices, indices, 12, 6, (const int[]){3, 2}, 2, 5);
+    return Mesh(vertices, indices, 16, 6, (const int[]){2, 2}, 2, 4);
 }
 
-Mesh Mesh::createQuadColored(glm::vec3 color)
+Mesh Mesh::createColoredQuad(glm::vec3 color)
 {
     const float vertices[] =
     {
@@ -203,6 +206,81 @@ Mesh Mesh::createQuadColored(glm::vec3 color)
         0, 3, 1
     };
     return Mesh(vertices, indices, 24, 6, 3, 6);
+}
+
+Mesh Mesh::createColoredCube(glm::vec3 color)
+{
+    const float vertices[] = 
+    {
+        -1.f, -1.f, 1.f,    color.r, color.g, color.b,
+        1.f, -1.f, 1.f,     color.r, color.g, color.b,
+        1.f, 1.f, 1.f,      color.r, color.g, color.b,
+        -1.f, 1.f, 1.f,     color.r, color.g, color.b,
+
+        -1.f, -1.f, -1.f,    color.r, color.g, color.b,
+        1.f, -1.f, -1.f,     color.r, color.g, color.b,
+        1.f, 1.f, -1.f,      color.r, color.g, color.b,
+        -1.f, 1.f, -1.f,     color.r, color.g, color.b,
+    };
+
+    const unsigned int indices[] = 
+    {
+        0, 1, 2,    2, 3, 0,
+        1, 5, 6,    6, 2, 1,
+        5, 4, 7,    7, 6, 5,
+        4, 0, 3,    3, 7, 4,
+        3, 2, 6,    6, 7, 3,
+        0, 1, 5,    5, 4, 0
+    };
+
+    // const float vertices[] =
+    // {
+    //     -0.5f, -0.5f,  0.5f,    color.r, color.g, color.b,
+    //     0.5f, -0.5f,  0.5f,     color.r, color.g, color.b,
+    //     -0.5f,  0.5f,  0.5f,    color.r, color.g, color.b,
+    //     0.5f,  0.5f,  0.5f,     color.r, color.g, color.b,
+
+    //     -0.5f, -0.5f, -0.5f,    color.r, color.g, color.b,
+    //     0.5f, -0.5f, -0.5f,     color.r, color.g, color.b,
+    //     -0.5f,  0.5f, -0.5f,    color.r, color.g, color.b,
+    //     0.5f,  0.5f, -0.5f,     color.r, color.g, color.b,
+    // };
+    // const unsigned int indices[] =
+    // {
+    //     0, 1, 3,
+    //     3, 2, 0,
+
+    //     4, 0, 2,
+    //     2, 6, 4,
+
+    //     5, 4, 7,
+    //     7, 6, 5,
+
+    //     1, 5, 7,
+    //     7, 3, 1,
+
+    //     3, 2, 7,
+    //     7, 6, 3,
+
+    //     4, 5, 1,
+    //     1, 0, 4
+    // };
+
+    // std::vector<unsigned int> indices = {
+    //     // Front
+    //     0, 2, 1, 2, 3, 1,
+    //     // Back
+    //     4, 5, 6, 5, 7, 6,
+    //     // Left
+    //     0, 4, 2, 4, 6, 2,
+    //     // Right
+    //     1, 5, 3, 5, 7, 3,
+    //     // Top
+    //     2, 6, 3, 6, 7, 3,
+    //     // Bottom
+    //     0, 1, 4, 1, 5, 4};
+
+    return Mesh(vertices, indices, 48, 36, 3, 6);
 }
 
 //Instancing:

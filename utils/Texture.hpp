@@ -8,10 +8,10 @@ class Texture2D
     
     public:
     unsigned int width, height;
-    Texture2D(unsigned int width, unsigned int height);
+    Texture2D(unsigned int width, unsigned int height, GLint internalformat = GL_RGB, GLint format = GL_RGB);
     void Bind(int activeTex = 0);
     void Unbind();
     unsigned int GetHandler();
-
+    //void SetBlendingMode();
     ~Texture2D();
 };
