@@ -1,0 +1,6 @@
+This folder contains example programs made with the Framework
+Simplest (current) way to compile and test them is by copying all the files of an example into the src/ folder, near glad.c-
+and putting the files from examples/utils/ inside the main utils/ directory
+
+(Some examples may have errors due to changes of parts of the Framework)
+(I will add executables directly in the near future)

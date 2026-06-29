@@ -27,7 +27,7 @@ int main()
 ```
 ### Mesh
 ##### Comes with:
-- Comes with it's own **model** matrix
+- It's own **model** matrix
 - **Instancing** using transform matirces
 - Mesh templates (cube, quad...) but can also be built in code
 #### Example
@@ -40,9 +40,9 @@ cube.SetInstanceTransforms(matricesArr);
 while(...)
 {
   ...
-  /*Use simple Shader Program*/
+  /*Use a simple Shader Program*/
   cube.Draw()
-  /*Use instanced Shader Program*/
+  /*Use an instanced Shader Program*/
   cube.DrawInstanced(matricesArr.size());
   ...
 }
@@ -56,7 +56,7 @@ while(...)
 ```cpp
 int main()
 {
-  ScreenFramebuffer sFB(window.GetWidth(), window.GetHeight());
+  ScreenFramebuffer sFB(window.GetWidth(), window.GetHeight()); //not used in this example
   DepthFramebuffer dFB(window.GetWidth(), window.GetHeight());
   ...
   while(...)
@@ -65,7 +65,9 @@ int main()
     //preparing the shadow texture (dFB.tex)
     dFB.Bind();
     dFB->depthShader.Use(); //there can also be a custom shader, depthShader is for simple/static meshes
-    /*Render scene*/
+    dFB.depthShader->SetUniformMat4("lightSpaceMatrix", light.matrix); //directional light (will be added in the future)
+    dFB.depthShader->SetUniformMat4("model", mesh.model);
+    /*Render scene normally*/
     dFB.Unbind();
 
     //clearing window to draw the scene
@@ -96,7 +98,7 @@ camera.SetSensitivity(1.f);
 camera.SetProjectionToPersp(45.f, window.GetWidth(), window.GetHeight(), .1f, 100.f);
 /*For now, callbacks must be set manually*/
 
-Input input(window.GetHandler()); //prepares a vectors for keys & mouse button states
+Input input(window.GetHandler()); //prepares vectors for keys & mouse button states
 ...
 ```
 
@@ -104,5 +106,20 @@ Input input(window.GetHandler()); //prepares a vectors for keys & mouse button s
 
 ![Example screenshot](images/Cube&Grass.png)
 
-### Others
-Comes with a Makefile for automatic compilation of the /utils & /src directories
+### Other info
+Comes with a Makefile for automatic compilation of the 'utils/' & 'src/' directories
+Main implementations found inside 'utils/' & 'shaders/' directories
+
+Used libraries:
+-GLFW (window creation + handling)
+-glad (loader generator)
+-GLM (calculations)
+(not implemented yet:)
+-stb_image (texture loading)
+-tiny_obj_loader/assimp (model loading)
+
+Future features:
+-Blinn-Phong Lighting shader template
+-Optimized Shadow Mapping
+-Model & Texture loading
+-And more..
